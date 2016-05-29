@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]> <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]> <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>How to create a custom linux service  &middot; Arj&#39;s Grocery</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+<meta name="description" content="About how to make a custom linux(ubuntu 14.04) service that can autostart at boot time" />
+
+<meta name="keywords" content="service, ubuntu, autostart, ">
+
+
+<meta property="og:title" content="How to create a custom linux service  &middot; Arj&#39;s Grocery ">
+<meta property="og:site_name" content="Arj&#39;s Grocery"/>
+<meta property="og:url" content="http://guloo.me/2016/01/17/how-to-create-a-custom-linux-service/" />
+<meta property="og:locale" content="en-us">
+
+
+<meta property="og:type" content="article" />
+<meta property="og:description" content="About how to make a custom linux(ubuntu 14.04) service that can autostart at boot time"/>
+<meta property="og:article:published_time" content="2016-01-17T23:17:04&#43;08:00" />
+<meta property="og:article:modified_time" content="2016-01-17T23:17:04&#43;08:00" />
+
+  
+    
+<meta property="og:article:tag" content="service">
+    
+<meta property="og:article:tag" content="ubuntu">
+    
+<meta property="og:article:tag" content="autostart">
+    
+  
+
+  
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "headline": "How to create a custom linux service",
+    "author": {
+      "@type": "Person",
+      "name": "http://profiles.google.com/+?rel=author"
+    },
+    "datePublished": "2016-01-17",
+    "description": "About how to make a custom linux(ubuntu 14.04) service that can autostart at boot time",
+    "wordCount":  514 
+  }
+</script>
+
+
+
+<link rel="canonical" href="http://guloo.me/2016/01/17/how-to-create-a-custom-linux-service/" />
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://guloo.me/touch-icon-144-precomposed.png">
+<link href="http://guloo.me/favicon.png" rel="icon">
+
+<meta name="generator" content="Hugo 0.15" />
+
+  <!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.2/html5shiv.js"></script>
+<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+
+
+    <link rel="stylesheet" href="http://guloo.me/css/bootswatch/default/bootstrap.min.css">
+
+
+<link rel="stylesheet" href="http://guloo.me/css/font-awesome.min.css">
+<link rel="stylesheet" href="http://guloo.me/css/style.css">
+
+
+  <link rel="stylesheet" href="http://guloo.me/css/highlight/default.css">
+
+
+</head>
+<body>
+    <header id="main-header">
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="http://guloo.me/">Arj&#39;s Grocery</a>
+      </div>
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav navbar-right">
+          
+          <li>
+
+            <a href="http://guloo.me/post"
+             title="Show list of posts">
+
+            
+                <i class="fa fa-file"></i>
+            
+
+            POST
+            </a>
+          </li>
+          
+          <li>
+
+            <a href="http://guloo.me/category"
+             title="Show list of categories">
+
+            
+                <i class="fa fa-folder-open"></i>
+            
+
+            CATEGORY
+            </a>
+          </li>
+          
+          <li>
+
+            <a href="http://guloo.me/tag"
+             title="Show list of tags">
+
+            
+                <i class="fa fa-tags"></i>
+            
+
+            TAG
+            </a>
+          </li>
+          
+          <li>
+
+            <a href="http://guloo.me/"
+            >
+
+            
+                <i class="fa fa-info-circle"></i>
+            
+
+            ABOUT
+            </a>
+          </li>
+          
+        </ul>
+      </div>
+      
+    </div>
+  </nav>
+
+</header>
+
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-9">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+  <div class="text-center">
+
+    <h1>How to create a custom linux service
+</h1>
+
+    <div class="metas">
+<small>
+  <i class="fa fa-calendar"></i>
+  <time datetime="2016-01-17">17 Jan, 2016</time>
+</small>
+
+
+  <small>
+    &middot; by Arj
+  
+  &middot; Read in about 3 min
+  &middot; (514 Words)
+</small>
+
+
+<div class="margin-10">
+
+</div>
+<br>
+</div>
+
+  </div>
+</div>
+
+      <div class="content">
+  
+
+<p>How to start a program at system startup? In ubuntu, As you know, script rc.local will be called at boot time, so just append your commands to the end of rc.local and they shall be executed at startup.
+While in this article, I&rsquo;ll show you a much more general way to deal with such issue by a command named <strong>update-rc.d</strong>.</p>
+
+<h3 id="define-a-service:fa24d9bca4129d41a5e22f1d7508753a">Define a service</h3>
+
+<p>Before calling update-rc.d, we have to define a <strong>service</strong>, which is an executable script, in path /etc/init.d.
+Here I&rsquo;ll show you a <strong>service</strong> named demo for instance and the content of demo has been separated into tree partitions.</p>
+
+<ul>
+<li><p>Part1: head of script</p>
+
+<pre><code class="language-shell">### BEGIN INIT INFO
+# Provides:          demo
+# Required-Start:    $all
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: A demo for service definition
+### END INIT INFO
+</code></pre>
+
+<p>Numbers in <em>Default-Start Default-Stop</em> are system run level. You may turn to <a href="https://wiki.debian.org/LSBInitScripts/">How to LSBize an Init Script</a> for detail.</p></li>
+
+<li><p>Part2: functions</p>
+
+<pre><code class="language-shell">start() {
+echo &quot;service demo started!&quot;
+}
+stop() {
+echo &quot;service demo stopped!&quot;
+}
+</code></pre>
+
+<p>You shall redefine these functions for your own service.</p></li>
+
+<li><p>Part3: a CASE expression</p>
+
+<pre><code class="language-shell">case &quot;$1&quot; in  
+start)
+start
+exit 0
+;;
+stop)
+stop
+exit 0  
+;;
+restart)
+stop
+start
+exit 0
+;;
+**)
+echo &quot;Usage: $0 {start|stop|restart}&quot;
+echo 0
+;;  
+esac
+</code></pre></li>
+</ul>
+
+<p>To put <em>demo</em> in /etc/init.d and make sure it has an executable permission.
+Now you can control service <em>demo</em> by command <strong>service demo start|stop|restart</strong>, try it!
+Actually, key word <strong>service</strong> here stands for a program in ubuntu that can execute scripts in path /etc/init.d/.
+So if it won&rsquo;t make you uncomfortable, you can also use command like <strong>/etc/init.d/demo start</strong> to start up your service.</p>
+
+<h3 id="usage-of-update-rc-d:fa24d9bca4129d41a5e22f1d7508753a">Usage of update-rc.d</h3>
+
+<p><strong>update-rc.d</strong> is used to install and remove System-V style init script links located in /etc/rcX.d where X is the runlevel number.
+During start up or when changing runlevel, links in certain /etc/rcX.d/, which pointing to scripts in path /etc/init.d/, will be executed. Here are some links in my /etc/rc0.d/.</p>
+
+<pre><code class="language-shell">lrwxrwxrwx   1 root root    15 Nov 25 06:19 K20rsync -&gt; ../init.d/rsync*
+lrwxrwxrwx   1 root root    17 Nov 25 06:19 S30urandom -&gt; ../init.d/urandom*
+lrwxrwxrwx   1 root root    20 Nov 25 06:19 S60umountroot -&gt; ../init.d/umountroot*
+lrwxrwxrwx   1 root root    14 Nov 25 06:19 S90halt -&gt; ../init.d/halt*
+</code></pre>
+
+<p>As you see, link names come in a <strong>[SK]NNname</strong> format where <strong>S</strong> stands for start, <strong>K</strong> stands for stop, <strong>NN</strong> stands for the sequence number to execute, and <strong>name</strong> refers to the script&rsquo;s name of course.</p>
+
+<p>It&rsquo;s easy using <strong>update-rc.d</strong> to add and remove links in /etc/rcX.d. Here&rsquo;s the example.</p>
+
+<h4 id="add-service:fa24d9bca4129d41a5e22f1d7508753a">Add service</h4>
+
+<p>If you don&rsquo;t care about the priorities, just use the default one.</p>
+
+<pre><code class="language-shell"># update-rc.d [-n] name defaults
+update-rc.d demo defaults
+</code></pre>
+
+<p>Otherwise,</p>
+
+<pre><code class="language-shell"># update-rc.d [-n] name start|stop NN runlevel [runlevel]... . start|stop NN runlevel [runlevel]... .
+update-rc.d demo start 70 2 3 4 5 . stop 30 0 1 6 .
+</code></pre>
+
+<p>Please make sure that the sum of two sequence numbers equal to 100.</p>
+
+<h4 id="remove-service:fa24d9bca4129d41a5e22f1d7508753a">Remove service</h4>
+
+<p>Using command below to remove all links in /etc/rcX.d/.</p>
+
+<pre><code class="language-shell">#update-rc.d [-n] [-f] name remove
+update-rc.d -f demo remove
+</code></pre>
+
+<h3 id="reference:fa24d9bca4129d41a5e22f1d7508753a">Reference</h3>
+
+<ol>
+<li><a href="https://wiki.debian.org/LSBInitScripts/">https://wiki.debian.org/LSBInitScripts/</a><br /></li>
+<li><a href="http://manpages.ubuntu.com/manpages/hardy/man8/update-rc.d.8.html">http://manpages.ubuntu.com/manpages/hardy/man8/update-rc.d.8.html</a></li>
+</ol>
+
+</div>
+
+
+      <footer>
+  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+      
+  
+    <nav><ul class="pager">
+    
+
+    
+      <li class="next">
+        <a href="http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/" title="创建基于golang应用的docker镜像">
+            Next <span aria-hidden="true">&rarr;</span>
+        </a>
+      </li>
+    
+    </ul> </nav>
+  
+
+
+</div>
+
+  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+  
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  (function() {
+    
+    
+    if (window.location.hostname == "localhost")
+      return;
+
+    var dsq = document.createElement('script'); dsq.async = true; dsq.type = 'text/javascript';
+    dsq.src = '//freshcue.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+</div>
+
+</footer>
+
+    </div>
+    
+      <div class="col-sm-3">
+        <div>
+    
+
+    <div class="section">
+      <header><div class="title"><b>RECENTS</b></div></header>
+      <div class="content">
+        <ul class="sidebar-ul">
+        
+          <li class="sidebar-li"><a href="http://guloo.me/2016/04/25/swarm-cluster-deployment/">Swarm cluster deployment</a></li>
+        
+          <li class="sidebar-li"><a href="http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/">创建基于golang应用的docker镜像</a></li>
+        
+          <li class="sidebar-li"><a href="http://guloo.me/2016/01/17/how-to-create-a-custom-linux-service/">How to create a custom linux service</a></li>
+        
+        </ul>
+      </div>
+    </div>
+
+    
+      
+      
+      <div class="section taxonomies">
+        <header><div class="title"><b>CATEGORY</b></div></header>
+        <div class="content">
+          <ul class="sidebar-ul">
+            <li class="sidebar-li"><a href="http://guloo.me/category/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/category/golang">golang</a></li><li class="sidebar-li"><a href="http://guloo.me/category/linux">linux</a></li>
+          </ul>
+        </div>
+      </div>
+      
+    
+      
+      
+      <div class="section taxonomies">
+        <header><div class="title"><b>TAG</b></div></header>
+        <div class="content">
+          <ul class="sidebar-ul">
+            <li class="sidebar-li"><a href="http://guloo.me/tag/swarm">swarm</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/etcd">etcd</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/golang">golang</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/ubuntu">ubuntu</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/service">service</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/autostart">autostart</a></li>
+          </ul>
+        </div>
+      </div>
+      
+    
+
+    
+      
+    
+      
+        
+        
+        <div class="section taxonomies">
+          <header><div class="title"><b>TAG CLOUD</b></div></header>
+          <div class="content">
+            
+              <a href="http://guloo.me/tag/swarm" class="label label-primary">swarm</a>
+            
+              <a href="http://guloo.me/tag/etcd" class="label label-primary">etcd</a>
+            
+              <a href="http://guloo.me/tag/golang" class="label label-primary">golang</a>
+            
+              <a href="http://guloo.me/tag/docker" class="label label-primary">docker</a>
+            
+              <a href="http://guloo.me/tag/ubuntu" class="label label-primary">ubuntu</a>
+            
+              <a href="http://guloo.me/tag/service" class="label label-primary">service</a>
+            
+              <a href="http://guloo.me/tag/autostart" class="label label-primary">autostart</a>
+            
+          </div>
+        </div>
+        
+      
+    
+</div>
+
+      </div>
+    
+  </div>
+</div>
+      
+<footer class="footer hidden-print">
+  <div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+          <p>
+           <div class="pull-left">
+  <a class="toplink" href="#">back to top</a>
+</div>
+<div class="pull-right">
+  
+</div>
+
+         </p>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 text-center">
+          <small>
+              
+    
+
+    
+
+
+          </small>
+        </div>
+    </div>
+  </div>
+</footer>
+
+    <script src="http://guloo.me/js/jquery.min.js"></script>
+<script src="http://guloo.me/js/bootstrap.min.js"></script>
+
+
+
+<script type="text/javascript">
+  (function() {
+    
+    
+    if (window.location.hostname == "localhost")
+      return;
+
+    var dsq = document.createElement('script'); dsq.async = true; dsq.type = 'text/javascript';
+    dsq.src = '//freshcue.disqus.com/count.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="http://guloo.me/js/highlight.pack.js"></script>
+<script src="http://guloo.me/js/site.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+<script>
+  var _gaq=[['_setAccount','UA-78450925-1'],['_trackPageview']];
+  (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+  g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+  s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+
+
+  </body>
+</html>
+

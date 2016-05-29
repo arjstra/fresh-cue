@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Docker on Arj&#39;s Grocery</title>
+    <link>http://guloo.me/tag/docker/</link>
+    <description>Recent content in Docker on Arj&#39;s Grocery</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>arjstra@gmail.com (Arjloo)</managingEditor>
+    <webMaster>arjstra@gmail.com (Arjloo)</webMaster>
+    <lastBuildDate>Wed, 13 Apr 2016 00:32:58 +0800</lastBuildDate>
+    <atom:link href="http://guloo.me/tag/docker/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>创建基于golang应用的docker镜像</title>
+      <link>http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/</link>
+      <pubDate>Wed, 13 Apr 2016 00:32:58 +0800</pubDate>
+      <author>arjstra@gmail.com (Arjloo)</author>
+      <guid>http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/</guid>
+      <description>
+
+&lt;p&gt;工作中很多时候我会创建docker镜像，之前大多是基于ubuntu基础镜像来创建，往往一个docker镜像就有好几百兆，这似乎与docker灵活部署的特点有那么一点不符;(。事实上，对我而言，使用ubuntu基础镜像很多时候只是看中它方便的包管理工具而已，在需要安装大量依赖时，apt-get真心很好用:)。然而，对于自己用golang编写的应用(号称能完全生活自理), 本身就只有十几兆，为了使用docker封装，而拖上一个几百兆的“累赘”，总感觉得不偿失。&lt;/p&gt;
+
+&lt;h3 id=&#34;from-scratch:36d5228be5ee8ea10cacb00d36fa1caf&#34;&gt;FROM scratch&lt;/h3&gt;
+
+&lt;p&gt;所以，我就尝试用基于scratch(空镜像)做了一个golang应用的docker镜像， 过程很顺利， 我也很得意，似乎一切都是那么顺理成章;)。然而现实未必如想象的美好，docker run 之后我便懵逼了:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;no such file or directory
+Error response from daemon: Cannot start container 116bc566f8640e07832d6466a8b7d1cd0109a367584ae5d4e4291e8fdade17e4: [8] System error: no such file or directory
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;啥? 缺少文件? 不是说golang编译出来的应用就是一坨，所有运行需要的东东都在里面了吗? 因为使用了scratch镜像，所以也完全没法进docker里面一探究竟，因为常用的linux指令都是木有滴-.-  只好求助大谷歌。很幸运，之前已经有人趟过坑了，现象跟我的完全一样，原因大致是说golang的某些库还是c库，运行时会以动态链接的方式链进来(找不到文件，八成是这个问题了)，想想之前还跟别人说golang编译的应用程序放到环境上就能跑，不依赖环境，真是一万只草泥马奔腾。。。这哥们还给出了解决方法，关闭默认打开的CGO_ENABLED开关，重新编译就ok！&lt;/p&gt;
+
+&lt;h3 id=&#34;cgo-enabled-0:36d5228be5ee8ea10cacb00d36fa1caf&#34;&gt;CGO_ENABLED = 0&lt;/h3&gt;
+
+&lt;p&gt;先尝试下再说，&lt;code&gt;CGO_ENABLED=0 go build -a&lt;/code&gt; 之后再把新鲜出炉的应用打包成docker跑了下，果然一切正常了，docker镜像也顺利减小到了十几兆，世界依然很美好。&lt;br /&gt;
+再来说说CGO_ENABLED, 话说该开关关闭后，golang里面调用c代码的部分都会被忽略掉。听起来有点慌慌的，我用到了net包，里面貌似有好多c调用，少了那些东西，我的程序真没问题么? 为此，我查了好久的大谷歌和官方文档，无奈眼拙，没有找到非常明确的解释，唯一一个比较靠谱的解释是，对于有些库，golang里面有两套实现方案，一套调用了c库，另一个则使用golang实现了，所以我的程序运行起来貌似还没出现问题。咳，感觉自己对golang的了解还是太少了，看来这个问题还是要长期关注下。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

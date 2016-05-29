@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]> <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]> <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Swarm cluster deployment  &middot; Arj&#39;s Grocery</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+<meta name="description" content="Swarm cluster deployment based on Etcd" />
+
+<meta name="keywords" content="swarm, etcd, ">
+
+
+<meta property="og:title" content="Swarm cluster deployment  &middot; Arj&#39;s Grocery ">
+<meta property="og:site_name" content="Arj&#39;s Grocery"/>
+<meta property="og:url" content="http://guloo.me/2016/04/25/swarm-cluster-deployment/" />
+<meta property="og:locale" content="en-us">
+
+
+<meta property="og:type" content="article" />
+<meta property="og:description" content="Swarm cluster deployment based on Etcd"/>
+<meta property="og:article:published_time" content="2016-04-25T23:17:08&#43;08:00" />
+<meta property="og:article:modified_time" content="2016-04-25T23:17:08&#43;08:00" />
+
+  
+    
+<meta property="og:article:tag" content="swarm">
+    
+<meta property="og:article:tag" content="etcd">
+    
+  
+
+  
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "headline": "Swarm cluster deployment",
+    "author": {
+      "@type": "Person",
+      "name": "http://profiles.google.com/+?rel=author"
+    },
+    "datePublished": "2016-04-25",
+    "description": "Swarm cluster deployment based on Etcd",
+    "wordCount":  134 
+  }
+</script>
+
+
+
+<link rel="canonical" href="http://guloo.me/2016/04/25/swarm-cluster-deployment/" />
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://guloo.me/touch-icon-144-precomposed.png">
+<link href="http://guloo.me/favicon.png" rel="icon">
+
+<meta name="generator" content="Hugo 0.15" />
+
+  <!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.2/html5shiv.js"></script>
+<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+
+
+    <link rel="stylesheet" href="http://guloo.me/css/bootswatch/default/bootstrap.min.css">
+
+
+<link rel="stylesheet" href="http://guloo.me/css/font-awesome.min.css">
+<link rel="stylesheet" href="http://guloo.me/css/style.css">
+
+
+  <link rel="stylesheet" href="http://guloo.me/css/highlight/default.css">
+
+
+</head>
+<body>
+    <header id="main-header">
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="http://guloo.me/">Arj&#39;s Grocery</a>
+      </div>
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav navbar-right">
+          
+          <li>
+
+            <a href="http://guloo.me/post"
+             title="Show list of posts">
+
+            
+                <i class="fa fa-file"></i>
+            
+
+            POST
+            </a>
+          </li>
+          
+          <li>
+
+            <a href="http://guloo.me/category"
+             title="Show list of categories">
+
+            
+                <i class="fa fa-folder-open"></i>
+            
+
+            CATEGORY
+            </a>
+          </li>
+          
+          <li>
+
+            <a href="http://guloo.me/tag"
+             title="Show list of tags">
+
+            
+                <i class="fa fa-tags"></i>
+            
+
+            TAG
+            </a>
+          </li>
+          
+          <li>
+
+            <a href="http://guloo.me/"
+            >
+
+            
+                <i class="fa fa-info-circle"></i>
+            
+
+            ABOUT
+            </a>
+          </li>
+          
+        </ul>
+      </div>
+      
+    </div>
+  </nav>
+
+</header>
+
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-9">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+  <div class="text-center">
+
+    <h1>Swarm cluster deployment
+</h1>
+
+    <div class="metas">
+<small>
+  <i class="fa fa-calendar"></i>
+  <time datetime="2016-04-25">25 Apr, 2016</time>
+</small>
+
+
+  <small>
+    &middot; by Arj
+  
+  &middot; Read in about 1 min
+  &middot; (134 Words)
+</small>
+
+
+<div class="margin-10">
+
+</div>
+<br>
+</div>
+
+  </div>
+</div>
+
+      <div class="content">
+  
+
+<h3 id="etcd-集群搭建-discover-mode:fbf90293291fd972bf9703d2140695d1">etcd 集群搭建(discover mode)</h3>
+
+<p>Swarm集群的建立需要依靠<strong>服务发现</strong>功能, 本文中使用etcd集群作为swarm服务发现功能的后端. 与此同时, etcd可以利用discover模式组建集群, 只是需要依赖一个已有的etcd集群(因此这里首先建立一个单节点的etcd)</p>
+
+<ol>
+<li><p>启动一个初始的etcd，用于作为etcd集群启动的discover</p>
+
+<pre><code>docker run -d -p 4001:4001 -p 2380:2380 -p 2379:2379 --name etcd quay.io/coreos/etcd:v2.2.5 \
+-name etcd0 \
+-advertise-client-urls http://${HOST_IP0}:2379,http://${HOST_IP0}:4001 \
+-listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001 \
+-initial-advertise-peer-urls http://${HOST_IP0}:2380 \
+-listen-peer-urls http://0.0.0.0:2380 \
+-initial-cluster-token etcd-cluster-initial \
+-initial-cluster etcd0=http://${HOST_IP0}:2380 \
+-initial-cluster-state new
+</code></pre></li>
+
+<li><p>设置集群的UUID以及集群的大小, 这里创建包含3个节点的集群</p>
+
+<pre><code>curl -X PUT http://${HOST_IP0}:4001/v2/keys/discovery/${cluster_name}/_config/size -d value=3
+</code></pre></li>
+
+<li><p>依次添加集群的3个节点</p>
+
+<pre><code>docker run -d -p 4001:4001 -p 2380:2380 -p 2379:2379 --name etcd quay.io/coreos/etcd:v2.2.5 \
+-name etcd1 \
+-advertise-client-urls http://${HOST_IPx}:2379,http://${HOST_IPx}:4001 \
+-listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001 \
+-initial-advertise-peer-urls http://${HOST_IPx}:2380 \
+-listen-peer-urls http://0.0.0.0:2380 \
+-discovery http://${HOST_IP0}:4001/v2/keys/discovery/${cluster_name}
+</code></pre></li>
+</ol>
+
+<h3 id="搭建具有3个节点的swarm-集群:fbf90293291fd972bf9703d2140695d1">搭建具有3个节点的swarm 集群</h3>
+
+<ol>
+<li><p>在/etc/default/docker中, 修改docker配置, 并重启docker服务. 这里可以为每个节点设置特定的标签, 标签可以作为之后容器部署时的constraints.</p>
+
+<pre><code>DOCKER_OPTS=&quot;-H 0.0.0.0:2375 -H unix:///var/run/docker.sock --label xxx=yyy &quot;
+</code></pre></li>
+
+<li><p>在三个nodes上启动agent, 其中etcd的地址可以是etcd集群中任意节点的地址.</p>
+
+<pre><code>docker run -d --name swarm --restart=always swarm join --advertise=${HOST_IPx}:2375 --heartbeat &quot;5s&quot; --ttl &quot;10s&quot; etcd://${HOST_IPx}:4001/swarm
+</code></pre></li>
+
+<li><p>在其中一个node上启动swarm manager</p>
+
+<pre><code>docker run -d -p 2376:2375 --name swarm_mgr swarm manage etcd://${HOST_IPx}:4001/swarm
+</code></pre></li>
+</ol>
+
+<h3 id="集群验证:fbf90293291fd972bf9703d2140695d1">集群验证</h3>
+
+<p>如果集群部署正常, 在部署有swarm manager的节点上使用<code>docker -H 127.0.0.1:2376 info</code>, 应该就能查到所有swarm节点的信息了.</p>
+
+</div>
+
+
+      <footer>
+  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+      
+  
+    <nav><ul class="pager">
+    
+        <li class="previous">
+          <a href="http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/" title="创建基于golang应用的docker镜像">
+            <span aria-hidden="true">&larr;</span>Previous
+          </a>
+        </li>
+    
+
+    
+    </ul> </nav>
+  
+
+
+</div>
+
+  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+  
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  (function() {
+    
+    
+    if (window.location.hostname == "localhost")
+      return;
+
+    var dsq = document.createElement('script'); dsq.async = true; dsq.type = 'text/javascript';
+    dsq.src = '//freshcue.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+</div>
+
+</footer>
+
+    </div>
+    
+      <div class="col-sm-3">
+        <div>
+    
+
+    <div class="section">
+      <header><div class="title"><b>RECENTS</b></div></header>
+      <div class="content">
+        <ul class="sidebar-ul">
+        
+          <li class="sidebar-li"><a href="http://guloo.me/2016/04/25/swarm-cluster-deployment/">Swarm cluster deployment</a></li>
+        
+          <li class="sidebar-li"><a href="http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/">创建基于golang应用的docker镜像</a></li>
+        
+          <li class="sidebar-li"><a href="http://guloo.me/2016/01/17/how-to-create-a-custom-linux-service/">How to create a custom linux service</a></li>
+        
+        </ul>
+      </div>
+    </div>
+
+    
+      
+      
+      <div class="section taxonomies">
+        <header><div class="title"><b>CATEGORY</b></div></header>
+        <div class="content">
+          <ul class="sidebar-ul">
+            <li class="sidebar-li"><a href="http://guloo.me/category/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/category/golang">golang</a></li><li class="sidebar-li"><a href="http://guloo.me/category/linux">linux</a></li>
+          </ul>
+        </div>
+      </div>
+      
+    
+      
+      
+      <div class="section taxonomies">
+        <header><div class="title"><b>TAG</b></div></header>
+        <div class="content">
+          <ul class="sidebar-ul">
+            <li class="sidebar-li"><a href="http://guloo.me/tag/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/ubuntu">ubuntu</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/service">service</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/autostart">autostart</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/swarm">swarm</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/etcd">etcd</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/golang">golang</a></li>
+          </ul>
+        </div>
+      </div>
+      
+    
+
+    
+      
+    
+      
+        
+        
+        <div class="section taxonomies">
+          <header><div class="title"><b>TAG CLOUD</b></div></header>
+          <div class="content">
+            
+              <a href="http://guloo.me/tag/autostart" class="label label-primary">autostart</a>
+            
+              <a href="http://guloo.me/tag/swarm" class="label label-primary">swarm</a>
+            
+              <a href="http://guloo.me/tag/etcd" class="label label-primary">etcd</a>
+            
+              <a href="http://guloo.me/tag/golang" class="label label-primary">golang</a>
+            
+              <a href="http://guloo.me/tag/docker" class="label label-primary">docker</a>
+            
+              <a href="http://guloo.me/tag/ubuntu" class="label label-primary">ubuntu</a>
+            
+              <a href="http://guloo.me/tag/service" class="label label-primary">service</a>
+            
+          </div>
+        </div>
+        
+      
+    
+</div>
+
+      </div>
+    
+  </div>
+</div>
+      
+<footer class="footer hidden-print">
+  <div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+          <p>
+           <div class="pull-left">
+  <a class="toplink" href="#">back to top</a>
+</div>
+<div class="pull-right">
+  
+</div>
+
+         </p>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 text-center">
+          <small>
+              
+    
+
+    
+
+
+          </small>
+        </div>
+    </div>
+  </div>
+</footer>
+
+    <script src="http://guloo.me/js/jquery.min.js"></script>
+<script src="http://guloo.me/js/bootstrap.min.js"></script>
+
+
+
+<script type="text/javascript">
+  (function() {
+    
+    
+    if (window.location.hostname == "localhost")
+      return;
+
+    var dsq = document.createElement('script'); dsq.async = true; dsq.type = 'text/javascript';
+    dsq.src = '//freshcue.disqus.com/count.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="http://guloo.me/js/highlight.pack.js"></script>
+<script src="http://guloo.me/js/site.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+<script>
+  var _gaq=[['_setAccount','UA-78450925-1'],['_trackPageview']];
+  (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+  g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+  s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+
+
+  </body>
+</html>
+

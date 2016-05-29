@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on Arj&#39;s Grocery</title>
+    <link>http://guloo.me/post/</link>
+    <description>Recent content in Posts on Arj&#39;s Grocery</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>arjstra@gmail.com (Arjloo)</managingEditor>
+    <webMaster>arjstra@gmail.com (Arjloo)</webMaster>
+    <lastBuildDate>Mon, 25 Apr 2016 23:17:08 +0800</lastBuildDate>
+    <atom:link href="http://guloo.me/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Swarm cluster deployment</title>
+      <link>http://guloo.me/2016/04/25/swarm-cluster-deployment/</link>
+      <pubDate>Mon, 25 Apr 2016 23:17:08 +0800</pubDate>
+      <author>arjstra@gmail.com (Arjloo)</author>
+      <guid>http://guloo.me/2016/04/25/swarm-cluster-deployment/</guid>
+      <description>
+
+&lt;h3 id=&#34;etcd-集群搭建-discover-mode:fbf90293291fd972bf9703d2140695d1&#34;&gt;etcd 集群搭建(discover mode)&lt;/h3&gt;
+
+&lt;p&gt;Swarm集群的建立需要依靠&lt;strong&gt;服务发现&lt;/strong&gt;功能, 本文中使用etcd集群作为swarm服务发现功能的后端. 与此同时, etcd可以利用discover模式组建集群, 只是需要依赖一个已有的etcd集群(因此这里首先建立一个单节点的etcd)&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;启动一个初始的etcd，用于作为etcd集群启动的discover&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run -d -p 4001:4001 -p 2380:2380 -p 2379:2379 --name etcd quay.io/coreos/etcd:v2.2.5 \
+-name etcd0 \
+-advertise-client-urls http://${HOST_IP0}:2379,http://${HOST_IP0}:4001 \
+-listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001 \
+-initial-advertise-peer-urls http://${HOST_IP0}:2380 \
+-listen-peer-urls http://0.0.0.0:2380 \
+-initial-cluster-token etcd-cluster-initial \
+-initial-cluster etcd0=http://${HOST_IP0}:2380 \
+-initial-cluster-state new
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;设置集群的UUID以及集群的大小, 这里创建包含3个节点的集群&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;curl -X PUT http://${HOST_IP0}:4001/v2/keys/discovery/${cluster_name}/_config/size -d value=3
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;依次添加集群的3个节点&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run -d -p 4001:4001 -p 2380:2380 -p 2379:2379 --name etcd quay.io/coreos/etcd:v2.2.5 \
+-name etcd1 \
+-advertise-client-urls http://${HOST_IPx}:2379,http://${HOST_IPx}:4001 \
+-listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001 \
+-initial-advertise-peer-urls http://${HOST_IPx}:2380 \
+-listen-peer-urls http://0.0.0.0:2380 \
+-discovery http://${HOST_IP0}:4001/v2/keys/discovery/${cluster_name}
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;搭建具有3个节点的swarm-集群:fbf90293291fd972bf9703d2140695d1&#34;&gt;搭建具有3个节点的swarm 集群&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;在/etc/default/docker中, 修改docker配置, 并重启docker服务. 这里可以为每个节点设置特定的标签, 标签可以作为之后容器部署时的constraints.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;DOCKER_OPTS=&amp;quot;-H 0.0.0.0:2375 -H unix:///var/run/docker.sock --label xxx=yyy &amp;quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;在三个nodes上启动agent, 其中etcd的地址可以是etcd集群中任意节点的地址.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run -d --name swarm --restart=always swarm join --advertise=${HOST_IPx}:2375 --heartbeat &amp;quot;5s&amp;quot; --ttl &amp;quot;10s&amp;quot; etcd://${HOST_IPx}:4001/swarm
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;在其中一个node上启动swarm manager&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run -d -p 2376:2375 --name swarm_mgr swarm manage etcd://${HOST_IPx}:4001/swarm
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;集群验证:fbf90293291fd972bf9703d2140695d1&#34;&gt;集群验证&lt;/h3&gt;
+
+&lt;p&gt;如果集群部署正常, 在部署有swarm manager的节点上使用&lt;code&gt;docker -H 127.0.0.1:2376 info&lt;/code&gt;, 应该就能查到所有swarm节点的信息了.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>创建基于golang应用的docker镜像</title>
+      <link>http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/</link>
+      <pubDate>Wed, 13 Apr 2016 00:32:58 +0800</pubDate>
+      <author>arjstra@gmail.com (Arjloo)</author>
+      <guid>http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/</guid>
+      <description>
+
+&lt;p&gt;工作中很多时候我会创建docker镜像，之前大多是基于ubuntu基础镜像来创建，往往一个docker镜像就有好几百兆，这似乎与docker灵活部署的特点有那么一点不符;(。事实上，对我而言，使用ubuntu基础镜像很多时候只是看中它方便的包管理工具而已，在需要安装大量依赖时，apt-get真心很好用:)。然而，对于自己用golang编写的应用(号称能完全生活自理), 本身就只有十几兆，为了使用docker封装，而拖上一个几百兆的“累赘”，总感觉得不偿失。&lt;/p&gt;
+
+&lt;h3 id=&#34;from-scratch:36d5228be5ee8ea10cacb00d36fa1caf&#34;&gt;FROM scratch&lt;/h3&gt;
+
+&lt;p&gt;所以，我就尝试用基于scratch(空镜像)做了一个golang应用的docker镜像， 过程很顺利， 我也很得意，似乎一切都是那么顺理成章;)。然而现实未必如想象的美好，docker run 之后我便懵逼了:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;no such file or directory
+Error response from daemon: Cannot start container 116bc566f8640e07832d6466a8b7d1cd0109a367584ae5d4e4291e8fdade17e4: [8] System error: no such file or directory
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;啥? 缺少文件? 不是说golang编译出来的应用就是一坨，所有运行需要的东东都在里面了吗? 因为使用了scratch镜像，所以也完全没法进docker里面一探究竟，因为常用的linux指令都是木有滴-.-  只好求助大谷歌。很幸运，之前已经有人趟过坑了，现象跟我的完全一样，原因大致是说golang的某些库还是c库，运行时会以动态链接的方式链进来(找不到文件，八成是这个问题了)，想想之前还跟别人说golang编译的应用程序放到环境上就能跑，不依赖环境，真是一万只草泥马奔腾。。。这哥们还给出了解决方法，关闭默认打开的CGO_ENABLED开关，重新编译就ok！&lt;/p&gt;
+
+&lt;h3 id=&#34;cgo-enabled-0:36d5228be5ee8ea10cacb00d36fa1caf&#34;&gt;CGO_ENABLED = 0&lt;/h3&gt;
+
+&lt;p&gt;先尝试下再说，&lt;code&gt;CGO_ENABLED=0 go build -a&lt;/code&gt; 之后再把新鲜出炉的应用打包成docker跑了下，果然一切正常了，docker镜像也顺利减小到了十几兆，世界依然很美好。&lt;br /&gt;
+再来说说CGO_ENABLED, 话说该开关关闭后，golang里面调用c代码的部分都会被忽略掉。听起来有点慌慌的，我用到了net包，里面貌似有好多c调用，少了那些东西，我的程序真没问题么? 为此，我查了好久的大谷歌和官方文档，无奈眼拙，没有找到非常明确的解释，唯一一个比较靠谱的解释是，对于有些库，golang里面有两套实现方案，一套调用了c库，另一个则使用golang实现了，所以我的程序运行起来貌似还没出现问题。咳，感觉自己对golang的了解还是太少了，看来这个问题还是要长期关注下。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>How to create a custom linux service</title>
+      <link>http://guloo.me/2016/01/17/how-to-create-a-custom-linux-service/</link>
+      <pubDate>Sun, 17 Jan 2016 23:17:04 +0800</pubDate>
+      <author>arjstra@gmail.com (Arjloo)</author>
+      <guid>http://guloo.me/2016/01/17/how-to-create-a-custom-linux-service/</guid>
+      <description>
+
+&lt;p&gt;How to start a program at system startup? In ubuntu, As you know, script rc.local will be called at boot time, so just append your commands to the end of rc.local and they shall be executed at startup.
+While in this article, I&amp;rsquo;ll show you a much more general way to deal with such issue by a command named &lt;strong&gt;update-rc.d&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;define-a-service:fa24d9bca4129d41a5e22f1d7508753a&#34;&gt;Define a service&lt;/h3&gt;
+
+&lt;p&gt;Before calling update-rc.d, we have to define a &lt;strong&gt;service&lt;/strong&gt;, which is an executable script, in path /etc/init.d.
+Here I&amp;rsquo;ll show you a &lt;strong&gt;service&lt;/strong&gt; named demo for instance and the content of demo has been separated into tree partitions.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Part1: head of script&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;### BEGIN INIT INFO
+# Provides:          demo
+# Required-Start:    $all
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: A demo for service definition
+### END INIT INFO
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Numbers in &lt;em&gt;Default-Start Default-Stop&lt;/em&gt; are system run level. You may turn to &lt;a href=&#34;https://wiki.debian.org/LSBInitScripts/&#34;&gt;How to LSBize an Init Script&lt;/a&gt; for detail.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Part2: functions&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;start() {
+echo &amp;quot;service demo started!&amp;quot;
+}
+stop() {
+echo &amp;quot;service demo stopped!&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You shall redefine these functions for your own service.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Part3: a CASE expression&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;case &amp;quot;$1&amp;quot; in  
+start)
+start
+exit 0
+;;
+stop)
+stop
+exit 0  
+;;
+restart)
+stop
+start
+exit 0
+;;
+**)
+echo &amp;quot;Usage: $0 {start|stop|restart}&amp;quot;
+echo 0
+;;  
+esac
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To put &lt;em&gt;demo&lt;/em&gt; in /etc/init.d and make sure it has an executable permission.
+Now you can control service &lt;em&gt;demo&lt;/em&gt; by command &lt;strong&gt;service demo start|stop|restart&lt;/strong&gt;, try it!
+Actually, key word &lt;strong&gt;service&lt;/strong&gt; here stands for a program in ubuntu that can execute scripts in path /etc/init.d/.
+So if it won&amp;rsquo;t make you uncomfortable, you can also use command like &lt;strong&gt;/etc/init.d/demo start&lt;/strong&gt; to start up your service.&lt;/p&gt;
+
+&lt;h3 id=&#34;usage-of-update-rc-d:fa24d9bca4129d41a5e22f1d7508753a&#34;&gt;Usage of update-rc.d&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;update-rc.d&lt;/strong&gt; is used to install and remove System-V style init script links located in /etc/rcX.d where X is the runlevel number.
+During start up or when changing runlevel, links in certain /etc/rcX.d/, which pointing to scripts in path /etc/init.d/, will be executed. Here are some links in my /etc/rc0.d/.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;lrwxrwxrwx   1 root root    15 Nov 25 06:19 K20rsync -&amp;gt; ../init.d/rsync*
+lrwxrwxrwx   1 root root    17 Nov 25 06:19 S30urandom -&amp;gt; ../init.d/urandom*
+lrwxrwxrwx   1 root root    20 Nov 25 06:19 S60umountroot -&amp;gt; ../init.d/umountroot*
+lrwxrwxrwx   1 root root    14 Nov 25 06:19 S90halt -&amp;gt; ../init.d/halt*
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As you see, link names come in a &lt;strong&gt;[SK]NNname&lt;/strong&gt; format where &lt;strong&gt;S&lt;/strong&gt; stands for start, &lt;strong&gt;K&lt;/strong&gt; stands for stop, &lt;strong&gt;NN&lt;/strong&gt; stands for the sequence number to execute, and &lt;strong&gt;name&lt;/strong&gt; refers to the script&amp;rsquo;s name of course.&lt;/p&gt;
+
+&lt;p&gt;It&amp;rsquo;s easy using &lt;strong&gt;update-rc.d&lt;/strong&gt; to add and remove links in /etc/rcX.d. Here&amp;rsquo;s the example.&lt;/p&gt;
+
+&lt;h4 id=&#34;add-service:fa24d9bca4129d41a5e22f1d7508753a&#34;&gt;Add service&lt;/h4&gt;
+
+&lt;p&gt;If you don&amp;rsquo;t care about the priorities, just use the default one.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# update-rc.d [-n] name defaults
+update-rc.d demo defaults
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Otherwise,&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# update-rc.d [-n] name start|stop NN runlevel [runlevel]... . start|stop NN runlevel [runlevel]... .
+update-rc.d demo start 70 2 3 4 5 . stop 30 0 1 6 .
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Please make sure that the sum of two sequence numbers equal to 100.&lt;/p&gt;
+
+&lt;h4 id=&#34;remove-service:fa24d9bca4129d41a5e22f1d7508753a&#34;&gt;Remove service&lt;/h4&gt;
+
+&lt;p&gt;Using command below to remove all links in /etc/rcX.d/.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;#update-rc.d [-n] [-f] name remove
+update-rc.d -f demo remove
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;reference:fa24d9bca4129d41a5e22f1d7508753a&#34;&gt;Reference&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;https://wiki.debian.org/LSBInitScripts/&#34;&gt;https://wiki.debian.org/LSBInitScripts/&lt;/a&gt;&lt;br /&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://manpages.ubuntu.com/manpages/hardy/man8/update-rc.d.8.html&#34;&gt;http://manpages.ubuntu.com/manpages/hardy/man8/update-rc.d.8.html&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

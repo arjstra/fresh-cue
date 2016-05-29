@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>http://guloo.me/</loc>
+    <lastmod>2016-04-25T23:17:08+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://guloo.me/2016/04/25/swarm-cluster-deployment/</loc>
+    <lastmod>2016-04-25T23:17:08+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/</loc>
+    <lastmod>2016-04-13T00:32:58+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://guloo.me/2016/01/17/how-to-create-a-custom-linux-service/</loc>
+    <lastmod>2016-01-17T23:17:04+08:00</lastmod>
+  </url>
+  
+</urlset>

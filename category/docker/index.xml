@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Docker on Arj&#39;s Grocery</title>
+    <link>http://guloo.me/category/docker/</link>
+    <description>Recent content in Docker on Arj&#39;s Grocery</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>arjstra@gmail.com (Arjloo)</managingEditor>
+    <webMaster>arjstra@gmail.com (Arjloo)</webMaster>
+    <lastBuildDate>Mon, 25 Apr 2016 23:17:08 +0800</lastBuildDate>
+    <atom:link href="http://guloo.me/category/docker/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Swarm cluster deployment</title>
+      <link>http://guloo.me/2016/04/25/swarm-cluster-deployment/</link>
+      <pubDate>Mon, 25 Apr 2016 23:17:08 +0800</pubDate>
+      <author>arjstra@gmail.com (Arjloo)</author>
+      <guid>http://guloo.me/2016/04/25/swarm-cluster-deployment/</guid>
+      <description>
+
+&lt;h3 id=&#34;etcd-集群搭建-discover-mode:fbf90293291fd972bf9703d2140695d1&#34;&gt;etcd 集群搭建(discover mode)&lt;/h3&gt;
+
+&lt;p&gt;Swarm集群的建立需要依靠&lt;strong&gt;服务发现&lt;/strong&gt;功能, 本文中使用etcd集群作为swarm服务发现功能的后端. 与此同时, etcd可以利用discover模式组建集群, 只是需要依赖一个已有的etcd集群(因此这里首先建立一个单节点的etcd)&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;启动一个初始的etcd，用于作为etcd集群启动的discover&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run -d -p 4001:4001 -p 2380:2380 -p 2379:2379 --name etcd quay.io/coreos/etcd:v2.2.5 \
+-name etcd0 \
+-advertise-client-urls http://${HOST_IP0}:2379,http://${HOST_IP0}:4001 \
+-listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001 \
+-initial-advertise-peer-urls http://${HOST_IP0}:2380 \
+-listen-peer-urls http://0.0.0.0:2380 \
+-initial-cluster-token etcd-cluster-initial \
+-initial-cluster etcd0=http://${HOST_IP0}:2380 \
+-initial-cluster-state new
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;设置集群的UUID以及集群的大小, 这里创建包含3个节点的集群&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;curl -X PUT http://${HOST_IP0}:4001/v2/keys/discovery/${cluster_name}/_config/size -d value=3
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;依次添加集群的3个节点&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run -d -p 4001:4001 -p 2380:2380 -p 2379:2379 --name etcd quay.io/coreos/etcd:v2.2.5 \
+-name etcd1 \
+-advertise-client-urls http://${HOST_IPx}:2379,http://${HOST_IPx}:4001 \
+-listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001 \
+-initial-advertise-peer-urls http://${HOST_IPx}:2380 \
+-listen-peer-urls http://0.0.0.0:2380 \
+-discovery http://${HOST_IP0}:4001/v2/keys/discovery/${cluster_name}
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;搭建具有3个节点的swarm-集群:fbf90293291fd972bf9703d2140695d1&#34;&gt;搭建具有3个节点的swarm 集群&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;在/etc/default/docker中, 修改docker配置, 并重启docker服务. 这里可以为每个节点设置特定的标签, 标签可以作为之后容器部署时的constraints.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;DOCKER_OPTS=&amp;quot;-H 0.0.0.0:2375 -H unix:///var/run/docker.sock --label xxx=yyy &amp;quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;在三个nodes上启动agent, 其中etcd的地址可以是etcd集群中任意节点的地址.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run -d --name swarm --restart=always swarm join --advertise=${HOST_IPx}:2375 --heartbeat &amp;quot;5s&amp;quot; --ttl &amp;quot;10s&amp;quot; etcd://${HOST_IPx}:4001/swarm
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;在其中一个node上启动swarm manager&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run -d -p 2376:2375 --name swarm_mgr swarm manage etcd://${HOST_IPx}:4001/swarm
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;集群验证:fbf90293291fd972bf9703d2140695d1&#34;&gt;集群验证&lt;/h3&gt;
+
+&lt;p&gt;如果集群部署正常, 在部署有swarm manager的节点上使用&lt;code&gt;docker -H 127.0.0.1:2376 info&lt;/code&gt;, 应该就能查到所有swarm节点的信息了.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

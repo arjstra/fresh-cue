@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]> <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]> <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>创建基于golang应用的docker镜像  &middot; Arj&#39;s Grocery</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+<meta name="description" content="创建golang应用的docker镜像&#39;FROM scratch&#39;" />
+
+<meta name="keywords" content="golang, docker, image, ">
+
+
+<meta property="og:title" content="创建基于golang应用的docker镜像  &middot; Arj&#39;s Grocery ">
+<meta property="og:site_name" content="Arj&#39;s Grocery"/>
+<meta property="og:url" content="http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/" />
+<meta property="og:locale" content="en-us">
+
+
+<meta property="og:type" content="article" />
+<meta property="og:description" content="创建golang应用的docker镜像&#39;FROM scratch&#39;"/>
+<meta property="og:article:published_time" content="2016-04-13T00:32:58&#43;08:00" />
+<meta property="og:article:modified_time" content="2016-04-13T00:32:58&#43;08:00" />
+
+  
+    
+<meta property="og:article:tag" content="golang">
+    
+<meta property="og:article:tag" content="docker">
+    
+<meta property="og:article:tag" content="image">
+    
+  
+
+  
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "headline": "创建基于golang应用的docker镜像",
+    "author": {
+      "@type": "Person",
+      "name": "http://profiles.google.com/+?rel=author"
+    },
+    "datePublished": "2016-04-13",
+    "description": "创建golang应用的docker镜像\x27FROM scratch\x27",
+    "wordCount":  46 
+  }
+</script>
+
+
+
+<link rel="canonical" href="http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/" />
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://guloo.me/touch-icon-144-precomposed.png">
+<link href="http://guloo.me/favicon.png" rel="icon">
+
+<meta name="generator" content="Hugo 0.15" />
+
+  <!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.2/html5shiv.js"></script>
+<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+
+
+    <link rel="stylesheet" href="http://guloo.me/css/bootswatch/default/bootstrap.min.css">
+
+
+<link rel="stylesheet" href="http://guloo.me/css/font-awesome.min.css">
+<link rel="stylesheet" href="http://guloo.me/css/style.css">
+
+
+  <link rel="stylesheet" href="http://guloo.me/css/highlight/default.css">
+
+
+</head>
+<body>
+    <header id="main-header">
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="http://guloo.me/">Arj&#39;s Grocery</a>
+      </div>
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav navbar-right">
+          
+          <li>
+
+            <a href="http://guloo.me/post"
+             title="Show list of posts">
+
+            
+                <i class="fa fa-file"></i>
+            
+
+            POST
+            </a>
+          </li>
+          
+          <li>
+
+            <a href="http://guloo.me/category"
+             title="Show list of categories">
+
+            
+                <i class="fa fa-folder-open"></i>
+            
+
+            CATEGORY
+            </a>
+          </li>
+          
+          <li>
+
+            <a href="http://guloo.me/tag"
+             title="Show list of tags">
+
+            
+                <i class="fa fa-tags"></i>
+            
+
+            TAG
+            </a>
+          </li>
+          
+          <li>
+
+            <a href="http://guloo.me/"
+            >
+
+            
+                <i class="fa fa-info-circle"></i>
+            
+
+            ABOUT
+            </a>
+          </li>
+          
+        </ul>
+      </div>
+      
+    </div>
+  </nav>
+
+</header>
+
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-9">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+  <div class="text-center">
+
+    <h1>创建基于golang应用的docker镜像
+</h1>
+
+    <div class="metas">
+<small>
+  <i class="fa fa-calendar"></i>
+  <time datetime="2016-04-13">13 Apr, 2016</time>
+</small>
+
+
+  <small>
+    &middot; by Arj
+  
+  &middot; Read in about 1 min
+  &middot; (46 Words)
+</small>
+
+
+<div class="margin-10">
+
+</div>
+<br>
+</div>
+
+  </div>
+</div>
+
+      <div class="content">
+  
+
+<p>工作中很多时候我会创建docker镜像，之前大多是基于ubuntu基础镜像来创建，往往一个docker镜像就有好几百兆，这似乎与docker灵活部署的特点有那么一点不符;(。事实上，对我而言，使用ubuntu基础镜像很多时候只是看中它方便的包管理工具而已，在需要安装大量依赖时，apt-get真心很好用:)。然而，对于自己用golang编写的应用(号称能完全生活自理), 本身就只有十几兆，为了使用docker封装，而拖上一个几百兆的“累赘”，总感觉得不偿失。</p>
+
+<h3 id="from-scratch:36d5228be5ee8ea10cacb00d36fa1caf">FROM scratch</h3>
+
+<p>所以，我就尝试用基于scratch(空镜像)做了一个golang应用的docker镜像， 过程很顺利， 我也很得意，似乎一切都是那么顺理成章;)。然而现实未必如想象的美好，docker run 之后我便懵逼了:</p>
+
+<pre><code>no such file or directory
+Error response from daemon: Cannot start container 116bc566f8640e07832d6466a8b7d1cd0109a367584ae5d4e4291e8fdade17e4: [8] System error: no such file or directory
+</code></pre>
+
+<p>啥? 缺少文件? 不是说golang编译出来的应用就是一坨，所有运行需要的东东都在里面了吗? 因为使用了scratch镜像，所以也完全没法进docker里面一探究竟，因为常用的linux指令都是木有滴-.-  只好求助大谷歌。很幸运，之前已经有人趟过坑了，现象跟我的完全一样，原因大致是说golang的某些库还是c库，运行时会以动态链接的方式链进来(找不到文件，八成是这个问题了)，想想之前还跟别人说golang编译的应用程序放到环境上就能跑，不依赖环境，真是一万只草泥马奔腾。。。这哥们还给出了解决方法，关闭默认打开的CGO_ENABLED开关，重新编译就ok！</p>
+
+<h3 id="cgo-enabled-0:36d5228be5ee8ea10cacb00d36fa1caf">CGO_ENABLED = 0</h3>
+
+<p>先尝试下再说，<code>CGO_ENABLED=0 go build -a</code> 之后再把新鲜出炉的应用打包成docker跑了下，果然一切正常了，docker镜像也顺利减小到了十几兆，世界依然很美好。<br />
+再来说说CGO_ENABLED, 话说该开关关闭后，golang里面调用c代码的部分都会被忽略掉。听起来有点慌慌的，我用到了net包，里面貌似有好多c调用，少了那些东西，我的程序真没问题么? 为此，我查了好久的大谷歌和官方文档，无奈眼拙，没有找到非常明确的解释，唯一一个比较靠谱的解释是，对于有些库，golang里面有两套实现方案，一套调用了c库，另一个则使用golang实现了，所以我的程序运行起来貌似还没出现问题。咳，感觉自己对golang的了解还是太少了，看来这个问题还是要长期关注下。</p>
+
+</div>
+
+
+      <footer>
+  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+      
+  
+    <nav><ul class="pager">
+    
+        <li class="previous">
+          <a href="http://guloo.me/2016/01/17/how-to-create-a-custom-linux-service/" title="How to create a custom linux service">
+            <span aria-hidden="true">&larr;</span>Previous
+          </a>
+        </li>
+    
+
+    
+      <li class="next">
+        <a href="http://guloo.me/2016/04/25/swarm-cluster-deployment/" title="Swarm cluster deployment">
+            Next <span aria-hidden="true">&rarr;</span>
+        </a>
+      </li>
+    
+    </ul> </nav>
+  
+
+
+</div>
+
+  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+  
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  (function() {
+    
+    
+    if (window.location.hostname == "localhost")
+      return;
+
+    var dsq = document.createElement('script'); dsq.async = true; dsq.type = 'text/javascript';
+    dsq.src = '//freshcue.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+</div>
+
+</footer>
+
+    </div>
+    
+      <div class="col-sm-3">
+        <div>
+    
+
+    <div class="section">
+      <header><div class="title"><b>RECENTS</b></div></header>
+      <div class="content">
+        <ul class="sidebar-ul">
+        
+          <li class="sidebar-li"><a href="http://guloo.me/2016/04/25/swarm-cluster-deployment/">Swarm cluster deployment</a></li>
+        
+          <li class="sidebar-li"><a href="http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/">创建基于golang应用的docker镜像</a></li>
+        
+          <li class="sidebar-li"><a href="http://guloo.me/2016/01/17/how-to-create-a-custom-linux-service/">How to create a custom linux service</a></li>
+        
+        </ul>
+      </div>
+    </div>
+
+    
+      
+      
+      <div class="section taxonomies">
+        <header><div class="title"><b>CATEGORY</b></div></header>
+        <div class="content">
+          <ul class="sidebar-ul">
+            <li class="sidebar-li"><a href="http://guloo.me/category/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/category/golang">golang</a></li><li class="sidebar-li"><a href="http://guloo.me/category/linux">linux</a></li>
+          </ul>
+        </div>
+      </div>
+      
+    
+      
+      
+      <div class="section taxonomies">
+        <header><div class="title"><b>TAG</b></div></header>
+        <div class="content">
+          <ul class="sidebar-ul">
+            <li class="sidebar-li"><a href="http://guloo.me/tag/service">service</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/autostart">autostart</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/swarm">swarm</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/etcd">etcd</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/golang">golang</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/ubuntu">ubuntu</a></li>
+          </ul>
+        </div>
+      </div>
+      
+    
+
+    
+      
+    
+      
+        
+        
+        <div class="section taxonomies">
+          <header><div class="title"><b>TAG CLOUD</b></div></header>
+          <div class="content">
+            
+              <a href="http://guloo.me/tag/ubuntu" class="label label-primary">ubuntu</a>
+            
+              <a href="http://guloo.me/tag/service" class="label label-primary">service</a>
+            
+              <a href="http://guloo.me/tag/autostart" class="label label-primary">autostart</a>
+            
+              <a href="http://guloo.me/tag/swarm" class="label label-primary">swarm</a>
+            
+              <a href="http://guloo.me/tag/etcd" class="label label-primary">etcd</a>
+            
+              <a href="http://guloo.me/tag/golang" class="label label-primary">golang</a>
+            
+              <a href="http://guloo.me/tag/docker" class="label label-primary">docker</a>
+            
+          </div>
+        </div>
+        
+      
+    
+</div>
+
+      </div>
+    
+  </div>
+</div>
+      
+<footer class="footer hidden-print">
+  <div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+          <p>
+           <div class="pull-left">
+  <a class="toplink" href="#">back to top</a>
+</div>
+<div class="pull-right">
+  
+</div>
+
+         </p>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 text-center">
+          <small>
+              
+    
+
+    
+
+
+          </small>
+        </div>
+    </div>
+  </div>
+</footer>
+
+    <script src="http://guloo.me/js/jquery.min.js"></script>
+<script src="http://guloo.me/js/bootstrap.min.js"></script>
+
+
+
+<script type="text/javascript">
+  (function() {
+    
+    
+    if (window.location.hostname == "localhost")
+      return;
+
+    var dsq = document.createElement('script'); dsq.async = true; dsq.type = 'text/javascript';
+    dsq.src = '//freshcue.disqus.com/count.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="http://guloo.me/js/highlight.pack.js"></script>
+<script src="http://guloo.me/js/site.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+<script>
+  var _gaq=[['_setAccount','UA-78450925-1'],['_trackPageview']];
+  (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+  g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+  s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+
+
+  </body>
+</html>
+
