@@ -184,6 +184,15 @@
 
 
 <div class="margin-10">
+  <i class="fa fa-tags"></i>
+  
+  <a href="http://guloo.me/tag/ubuntu" class="label label-primary">ubuntu</a>
+  
+  <a href="http://guloo.me/tag/service" class="label label-primary">service</a>
+  
+  <a href="http://guloo.me/tag/autostart" class="label label-primary">autostart</a>
+  
+
 
 </div>
 <br>
@@ -198,7 +207,7 @@
 <p>How to start a program at system startup? In ubuntu, As you know, script rc.local will be called at boot time, so just append your commands to the end of rc.local and they shall be executed at startup.
 While in this article, I&rsquo;ll show you a much more general way to deal with such issue by a command named <strong>update-rc.d</strong>.</p>
 
-<h3 id="define-a-service:fa24d9bca4129d41a5e22f1d7508753a">Define a service</h3>
+<h3 id="define-a-service">Define a service</h3>
 
 <p>Before calling update-rc.d, we have to define a <strong>service</strong>, which is an executable script, in path /etc/init.d.
 Here I&rsquo;ll show you a <strong>service</strong> named demo for instance and the content of demo has been separated into tree partitions.</p>
@@ -259,7 +268,7 @@ Now you can control service <em>demo</em> by command <strong>service demo start|
 Actually, key word <strong>service</strong> here stands for a program in ubuntu that can execute scripts in path /etc/init.d/.
 So if it won&rsquo;t make you uncomfortable, you can also use command like <strong>/etc/init.d/demo start</strong> to start up your service.</p>
 
-<h3 id="usage-of-update-rc-d:fa24d9bca4129d41a5e22f1d7508753a">Usage of update-rc.d</h3>
+<h3 id="usage-of-update-rc-d">Usage of update-rc.d</h3>
 
 <p><strong>update-rc.d</strong> is used to install and remove System-V style init script links located in /etc/rcX.d where X is the runlevel number.
 During start up or when changing runlevel, links in certain /etc/rcX.d/, which pointing to scripts in path /etc/init.d/, will be executed. Here are some links in my /etc/rc0.d/.</p>
@@ -274,7 +283,7 @@ lrwxrwxrwx   1 root root    14 Nov 25 06:19 S90halt -&gt; ../init.d/halt*
 
 <p>It&rsquo;s easy using <strong>update-rc.d</strong> to add and remove links in /etc/rcX.d. Here&rsquo;s the example.</p>
 
-<h4 id="add-service:fa24d9bca4129d41a5e22f1d7508753a">Add service</h4>
+<h4 id="add-service">Add service</h4>
 
 <p>If you don&rsquo;t care about the priorities, just use the default one.</p>
 
@@ -290,7 +299,7 @@ update-rc.d demo start 70 2 3 4 5 . stop 30 0 1 6 .
 
 <p>Please make sure that the sum of two sequence numbers equal to 100.</p>
 
-<h4 id="remove-service:fa24d9bca4129d41a5e22f1d7508753a">Remove service</h4>
+<h4 id="remove-service">Remove service</h4>
 
 <p>Using command below to remove all links in /etc/rcX.d/.</p>
 
@@ -298,7 +307,7 @@ update-rc.d demo start 70 2 3 4 5 . stop 30 0 1 6 .
 update-rc.d -f demo remove
 </code></pre>
 
-<h3 id="reference:fa24d9bca4129d41a5e22f1d7508753a">Reference</h3>
+<h3 id="reference">Reference</h3>
 
 <ol>
 <li><a href="https://wiki.debian.org/LSBInitScripts/">https://wiki.debian.org/LSBInitScripts/</a><br /></li>
@@ -361,6 +370,8 @@ update-rc.d -f demo remove
       <div class="content">
         <ul class="sidebar-ul">
         
+          <li class="sidebar-li"><a href="http://guloo.me/2016/06/07/set-up-skydns/">Set up skyDNS</a></li>
+        
           <li class="sidebar-li"><a href="http://guloo.me/2016/04/25/swarm-cluster-deployment/">Swarm cluster deployment</a></li>
         
           <li class="sidebar-li"><a href="http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/">创建基于golang应用的docker镜像</a></li>
@@ -378,7 +389,7 @@ update-rc.d -f demo remove
         <header><div class="title"><b>CATEGORY</b></div></header>
         <div class="content">
           <ul class="sidebar-ul">
-            <li class="sidebar-li"><a href="http://guloo.me/category/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/category/golang">golang</a></li><li class="sidebar-li"><a href="http://guloo.me/category/linux">linux</a></li>
+            <li class="sidebar-li"><a href="http://guloo.me/category/utility">utility</a></li><li class="sidebar-li"><a href="http://guloo.me/category/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/category/golang">golang</a></li><li class="sidebar-li"><a href="http://guloo.me/category/linux">linux</a></li>
           </ul>
         </div>
       </div>
@@ -390,7 +401,7 @@ update-rc.d -f demo remove
         <header><div class="title"><b>TAG</b></div></header>
         <div class="content">
           <ul class="sidebar-ul">
-            <li class="sidebar-li"><a href="http://guloo.me/tag/swarm">swarm</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/etcd">etcd</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/golang">golang</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/ubuntu">ubuntu</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/service">service</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/autostart">autostart</a></li>
+            <li class="sidebar-li"><a href="http://guloo.me/tag/etcd">etcd</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/autostart">autostart</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/skydns">skydns</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/swarm">swarm</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/golang">golang</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/ubuntu">ubuntu</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/service">service</a></li>
           </ul>
         </div>
       </div>
@@ -407,9 +418,11 @@ update-rc.d -f demo remove
           <header><div class="title"><b>TAG CLOUD</b></div></header>
           <div class="content">
             
-              <a href="http://guloo.me/tag/swarm" class="label label-primary">swarm</a>
-            
               <a href="http://guloo.me/tag/etcd" class="label label-primary">etcd</a>
+            
+              <a href="http://guloo.me/tag/skydns" class="label label-primary">skydns</a>
+            
+              <a href="http://guloo.me/tag/swarm" class="label label-primary">swarm</a>
             
               <a href="http://guloo.me/tag/golang" class="label label-primary">golang</a>
             

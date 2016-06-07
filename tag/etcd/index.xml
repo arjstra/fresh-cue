@@ -8,8 +8,60 @@
     <language>en-us</language>
     <managingEditor>arjstra@gmail.com (Arjloo)</managingEditor>
     <webMaster>arjstra@gmail.com (Arjloo)</webMaster>
-    <lastBuildDate>Mon, 25 Apr 2016 23:17:08 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 07 Jun 2016 23:21:57 +0800</lastBuildDate>
     <atom:link href="http://guloo.me/tag/etcd/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Set up skyDNS</title>
+      <link>http://guloo.me/2016/06/07/set-up-skydns/</link>
+      <pubDate>Tue, 07 Jun 2016 23:21:57 +0800</pubDate>
+      <author>arjstra@gmail.com (Arjloo)</author>
+      <guid>http://guloo.me/2016/06/07/set-up-skydns/</guid>
+      <description>
+
+&lt;h3 id=&#34;skydns-https-github-com-skynetservices-skydns:a108654884f3d10647cdf4c584ec3c1f&#34;&gt;&lt;a href=&#34;https://github.com/skynetservices/skydns&#34;&gt;SkyDNS&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;最近由于项目需要dns服务，在github搜索时发现了它。skydns的社区比较活跃，其功能也能满足我的基本需求需求(k8s的dns服务用的也是它)，后端存储还是用的我比较熟悉的etcd，所以就它了:) 貌似还有人用它做服务发现，不过以etcd作为后端，提供服务发现功能似乎也并不奇怪。下面简要介绍下搭建skydns的过程，这里用到的服务都是以docker形式部署的。&lt;/p&gt;
+
+&lt;h3 id=&#34;建立etcd集群:a108654884f3d10647cdf4c584ec3c1f&#34;&gt;建立etcd集群&lt;/h3&gt;
+
+&lt;p&gt;SkyDNS以etcd作为kv存储，这里首先建立一个单节点的etcd集群。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run -d -p 4001:4001 -p 2380:2380 -p 2379:2379 \
+ --name etcd quay.io/coreos/etcd:v2.2.5 \
+ -name etcd0 \
+ -advertise-client-urls http://${hostip}:2379,http://${hostip}:4001 \
+ -listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001 \
+ -initial-advertise-peer-urls http://${hostip}:2380 \
+ -listen-peer-urls http://0.0.0.0:2380 \
+ -initial-cluster-token etcd-cluster-0 \
+ -initial-cluster etcd0=http://${hostip}:2380 \
+ -initial-cluster-state new
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;安装skydns:a108654884f3d10647cdf4c584ec3c1f&#34;&gt;安装SkyDNS&lt;/h3&gt;
+
+&lt;p&gt;这里采用docker的host网络模式部署skydns。目前没试过其它网络模式，不过应该把53端口映射出来，另外设置下监听etcd的地址应该就能正常使用了。
+&lt;code&gt;docker run --net host --name skydns skynetservices/skydns&lt;/code&gt;
+skydns默认使用&lt;code&gt;http://127.0.0.1:4001&lt;/code&gt;连接etcd，也可以使用环境变量&lt;strong&gt;ETCD_MACHINES&lt;/strong&gt;进行指定.&lt;/p&gt;
+
+&lt;h3 id=&#34;配置:a108654884f3d10647cdf4c584ec3c1f&#34;&gt;配置&lt;/h3&gt;
+
+&lt;p&gt;设置dns服务的监听地址和端口，另外设置nameservers用于提供外部域名的dns查询&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;etcdctl set /skydns/config &#39;{&amp;quot;dns_addr&amp;quot;:&amp;quot;0.0.0.0:53&amp;quot;, &amp;quot;ttl&amp;quot;:3600, &amp;quot;nameservers&amp;quot;:[&amp;quot;8.8.8.8:53&amp;quot;, &amp;quot;8.8.4.4:53&amp;quot;]}&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;添加dns记录:a108654884f3d10647cdf4c584ec3c1f&#34;&gt;添加DNS记录&lt;/h3&gt;
+
+&lt;p&gt;往etcd中写入dns记录，这里使用etcdctl工具&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;etcdctl get /skydns/local/skydns/blog/dns &#39;{&amp;quot;host&amp;quot;:&amp;quot;10.10.10.10&amp;quot;}&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;域名为: &lt;code&gt;dns.blog.skydns.local&lt;/code&gt;, 至此大功告成:)&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Swarm cluster deployment</title>
@@ -19,7 +71,7 @@
       <guid>http://guloo.me/2016/04/25/swarm-cluster-deployment/</guid>
       <description>
 
-&lt;h3 id=&#34;etcd-集群搭建-discover-mode:fbf90293291fd972bf9703d2140695d1&#34;&gt;etcd 集群搭建(discover mode)&lt;/h3&gt;
+&lt;h3 id=&#34;etcd-集群搭建-discover-mode&#34;&gt;etcd 集群搭建(discover mode)&lt;/h3&gt;
 
 &lt;p&gt;Swarm集群的建立需要依靠&lt;strong&gt;服务发现&lt;/strong&gt;功能, 本文中使用etcd集群作为swarm服务发现功能的后端. 与此同时, etcd可以利用discover模式组建集群, 只是需要依赖一个已有的etcd集群(因此这里首先建立一个单节点的etcd)&lt;/p&gt;
 
@@ -54,7 +106,7 @@
 &lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h3 id=&#34;搭建具有3个节点的swarm-集群:fbf90293291fd972bf9703d2140695d1&#34;&gt;搭建具有3个节点的swarm 集群&lt;/h3&gt;
+&lt;h3 id=&#34;搭建具有3个节点的swarm-集群&#34;&gt;搭建具有3个节点的swarm 集群&lt;/h3&gt;
 
 &lt;ol&gt;
 &lt;li&gt;&lt;p&gt;在/etc/default/docker中, 修改docker配置, 并重启docker服务. 这里可以为每个节点设置特定的标签, 标签可以作为之后容器部署时的constraints.&lt;/p&gt;
@@ -73,7 +125,7 @@
 &lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h3 id=&#34;集群验证:fbf90293291fd972bf9703d2140695d1&#34;&gt;集群验证&lt;/h3&gt;
+&lt;h3 id=&#34;集群验证&#34;&gt;集群验证&lt;/h3&gt;
 
 &lt;p&gt;如果集群部署正常, 在部署有swarm manager的节点上使用&lt;code&gt;docker -H 127.0.0.1:2376 info&lt;/code&gt;, 应该就能查到所有swarm节点的信息了.&lt;/p&gt;
 </description>

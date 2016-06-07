@@ -19,7 +19,7 @@
       <guid>http://guloo.me/2016/04/25/swarm-cluster-deployment/</guid>
       <description>
 
-&lt;h3 id=&#34;etcd-集群搭建-discover-mode:fbf90293291fd972bf9703d2140695d1&#34;&gt;etcd 集群搭建(discover mode)&lt;/h3&gt;
+&lt;h3 id=&#34;etcd-集群搭建-discover-mode&#34;&gt;etcd 集群搭建(discover mode)&lt;/h3&gt;
 
 &lt;p&gt;Swarm集群的建立需要依靠&lt;strong&gt;服务发现&lt;/strong&gt;功能, 本文中使用etcd集群作为swarm服务发现功能的后端. 与此同时, etcd可以利用discover模式组建集群, 只是需要依赖一个已有的etcd集群(因此这里首先建立一个单节点的etcd)&lt;/p&gt;
 
@@ -54,7 +54,7 @@
 &lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h3 id=&#34;搭建具有3个节点的swarm-集群:fbf90293291fd972bf9703d2140695d1&#34;&gt;搭建具有3个节点的swarm 集群&lt;/h3&gt;
+&lt;h3 id=&#34;搭建具有3个节点的swarm-集群&#34;&gt;搭建具有3个节点的swarm 集群&lt;/h3&gt;
 
 &lt;ol&gt;
 &lt;li&gt;&lt;p&gt;在/etc/default/docker中, 修改docker配置, 并重启docker服务. 这里可以为每个节点设置特定的标签, 标签可以作为之后容器部署时的constraints.&lt;/p&gt;
@@ -73,7 +73,7 @@
 &lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h3 id=&#34;集群验证:fbf90293291fd972bf9703d2140695d1&#34;&gt;集群验证&lt;/h3&gt;
+&lt;h3 id=&#34;集群验证&#34;&gt;集群验证&lt;/h3&gt;
 
 &lt;p&gt;如果集群部署正常, 在部署有swarm manager的节点上使用&lt;code&gt;docker -H 127.0.0.1:2376 info&lt;/code&gt;, 应该就能查到所有swarm节点的信息了.&lt;/p&gt;
 </description>

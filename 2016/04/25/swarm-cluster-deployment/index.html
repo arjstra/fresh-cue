@@ -182,6 +182,13 @@
 
 
 <div class="margin-10">
+  <i class="fa fa-tags"></i>
+  
+  <a href="http://guloo.me/tag/swarm" class="label label-primary">swarm</a>
+  
+  <a href="http://guloo.me/tag/etcd" class="label label-primary">etcd</a>
+  
+
 
 </div>
 <br>
@@ -193,7 +200,7 @@
       <div class="content">
   
 
-<h3 id="etcd-集群搭建-discover-mode:fbf90293291fd972bf9703d2140695d1">etcd 集群搭建(discover mode)</h3>
+<h3 id="etcd-集群搭建-discover-mode">etcd 集群搭建(discover mode)</h3>
 
 <p>Swarm集群的建立需要依靠<strong>服务发现</strong>功能, 本文中使用etcd集群作为swarm服务发现功能的后端. 与此同时, etcd可以利用discover模式组建集群, 只是需要依赖一个已有的etcd集群(因此这里首先建立一个单节点的etcd)</p>
 
@@ -228,7 +235,7 @@
 </code></pre></li>
 </ol>
 
-<h3 id="搭建具有3个节点的swarm-集群:fbf90293291fd972bf9703d2140695d1">搭建具有3个节点的swarm 集群</h3>
+<h3 id="搭建具有3个节点的swarm-集群">搭建具有3个节点的swarm 集群</h3>
 
 <ol>
 <li><p>在/etc/default/docker中, 修改docker配置, 并重启docker服务. 这里可以为每个节点设置特定的标签, 标签可以作为之后容器部署时的constraints.</p>
@@ -247,7 +254,7 @@
 </code></pre></li>
 </ol>
 
-<h3 id="集群验证:fbf90293291fd972bf9703d2140695d1">集群验证</h3>
+<h3 id="集群验证">集群验证</h3>
 
 <p>如果集群部署正常, 在部署有swarm manager的节点上使用<code>docker -H 127.0.0.1:2376 info</code>, 应该就能查到所有swarm节点的信息了.</p>
 
@@ -267,6 +274,12 @@
         </li>
     
 
+    
+      <li class="next">
+        <a href="http://guloo.me/2016/06/07/set-up-skydns/" title="Set up skyDNS">
+            Next <span aria-hidden="true">&rarr;</span>
+        </a>
+      </li>
     
     </ul> </nav>
   
@@ -307,6 +320,8 @@
       <div class="content">
         <ul class="sidebar-ul">
         
+          <li class="sidebar-li"><a href="http://guloo.me/2016/06/07/set-up-skydns/">Set up skyDNS</a></li>
+        
           <li class="sidebar-li"><a href="http://guloo.me/2016/04/25/swarm-cluster-deployment/">Swarm cluster deployment</a></li>
         
           <li class="sidebar-li"><a href="http://guloo.me/2016/04/13/%E5%88%9B%E5%BB%BA%E5%9F%BA%E4%BA%8Egolang%E5%BA%94%E7%94%A8%E7%9A%84docker%E9%95%9C%E5%83%8F/">创建基于golang应用的docker镜像</a></li>
@@ -324,7 +339,7 @@
         <header><div class="title"><b>CATEGORY</b></div></header>
         <div class="content">
           <ul class="sidebar-ul">
-            <li class="sidebar-li"><a href="http://guloo.me/category/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/category/golang">golang</a></li><li class="sidebar-li"><a href="http://guloo.me/category/linux">linux</a></li>
+            <li class="sidebar-li"><a href="http://guloo.me/category/linux">linux</a></li><li class="sidebar-li"><a href="http://guloo.me/category/utility">utility</a></li><li class="sidebar-li"><a href="http://guloo.me/category/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/category/golang">golang</a></li>
           </ul>
         </div>
       </div>
@@ -336,7 +351,7 @@
         <header><div class="title"><b>TAG</b></div></header>
         <div class="content">
           <ul class="sidebar-ul">
-            <li class="sidebar-li"><a href="http://guloo.me/tag/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/ubuntu">ubuntu</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/service">service</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/autostart">autostart</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/swarm">swarm</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/etcd">etcd</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/golang">golang</a></li>
+            <li class="sidebar-li"><a href="http://guloo.me/tag/etcd">etcd</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/skydns">skydns</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/swarm">swarm</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/golang">golang</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/docker">docker</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/ubuntu">ubuntu</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/service">service</a></li><li class="sidebar-li"><a href="http://guloo.me/tag/autostart">autostart</a></li>
           </ul>
         </div>
       </div>
@@ -353,10 +368,6 @@
           <header><div class="title"><b>TAG CLOUD</b></div></header>
           <div class="content">
             
-              <a href="http://guloo.me/tag/autostart" class="label label-primary">autostart</a>
-            
-              <a href="http://guloo.me/tag/swarm" class="label label-primary">swarm</a>
-            
               <a href="http://guloo.me/tag/etcd" class="label label-primary">etcd</a>
             
               <a href="http://guloo.me/tag/golang" class="label label-primary">golang</a>
@@ -366,6 +377,12 @@
               <a href="http://guloo.me/tag/ubuntu" class="label label-primary">ubuntu</a>
             
               <a href="http://guloo.me/tag/service" class="label label-primary">service</a>
+            
+              <a href="http://guloo.me/tag/autostart" class="label label-primary">autostart</a>
+            
+              <a href="http://guloo.me/tag/skydns" class="label label-primary">skydns</a>
+            
+              <a href="http://guloo.me/tag/swarm" class="label label-primary">swarm</a>
             
           </div>
         </div>
